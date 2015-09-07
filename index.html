@@ -4,8 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name=viewport content="width=device-width, initial-scale=1">
-	<title>Interest</title>
-
+	<title>Interest Calculator</title>
 </head>
 <style>
 body, html{
@@ -335,7 +334,7 @@ function approxRate1(A,P,N){
 		{
 			if(increase==true){
 				stepR /=10;
-				if(stepR == 0.0001)
+				if(stepR == 0.00001)
 					break;
 			}
 			R -=stepR;
@@ -367,7 +366,7 @@ function approxRate2(A,P,N){
 		{
 			if(increase==true){
 				stepR /=10;
-				if(stepR == 0.0001)
+				if(stepR == 0.00001)
 					break;
 			}
 			R -=stepR;
