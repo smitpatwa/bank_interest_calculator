@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<title>Interest</title>
+
+</head>
+<style>
+body, html{
+	margin: 0;
+	padding: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 1.5em;
+}
+#detailsCont{
+	position: relative;
+	margin: auto;
+	min-width: 60%;
+	width: 1000px;
+	max-width: 95%;
+	padding-top: 20px;
+	background: #eee;
+	text-align: center;
+}
+.type{
+	padding: 10px 0px;
+}
+.detailsInput{
+	position: relative;
+	width: 100%;
+	text-align: center;
+	margin: 15px 0px;
+}
+.detailsInput .ques{
+	position: relative;
+	display: inline-block;
+	width: 100%;
+	text-align: center;
+}
+.detailsInput .input{
+	position: relative;
+	display: inline-block;
+	width: 100%;
+	text-align: center;
+}
+.input input,.input select{
+	max-width: 95%;
+	box-sizing: border-box;
+	border-radius: 3px;
+	font-size: 1em;
+	height: 50px;
+	position: relative;
+}
+#ansCont{
+	position: relative;
+	width: 100%;
+	margin-top: 5%;
+	height: 75px;
+	line-height: 75px;
+	text-align: center;
+	background: #4b8;
+}
+@media screen and (min-width:600px){
+	.detailsInput .ques{
+		display: block;
+		width: 50%;
+		text-align: right;
+	}
+	.detailsInput .input{
+		position: absolute;
+		display: block;
+		width: 45%;
+		height:100%;
+		text-align: left;
+		right: 0;
+		top: 0;
+	}
+	.input input, .input select {
+	    position: absolute;
+	    top: 0;
+	    bottom: 0;
+	    margin: auto;
+	}
+}
+</style>
+<body>
+<div id="detailsCont">
+	<div class="detailsInput">
+		<div class="ques">
+			Type of Interest
+		</div>
+		<div class="input">
+			<select name="type" id="type" onChange="Changetype();ChangeUnknown()">
+				<option selected='selected'>Compound monthly</option>
+				<option>Emi</option>
+				<option>Compound</option>
+				<option>Simple</option>
+			</select>
+		</div>
+	</div>
+	<div class="detailsInput">
+		<div class="ques">
+			Unknown
+		</div>
+		<div class="input">
+			<select name="type" id="unkwn" onChange="Changetype();ChangeSubmit()">
+				<option selected='selected'>Amount</option>
+				<option>Periodic Pay</option>
+				<option>Period</option>
+				<option>Rate of Interest</option>
+			</select>
+		</div>
+	</div>
+	<form id="mainForm" onsubmit="calculateAmount(); return false;">
+	<div class="type">
+		<div class="detailsInput chng_head">
+			<div class="ques">
+				Periodic Pay
+			</div>
+			<div class="input">
+				<input type="number" step="0.001" id="regAmount" />
+			</div>
+		</div>
+		<div class="detailsInput chng_head">
+			<div class="ques">
+				Yearly interest rate
+			</div>
+			<div class="input">
+				<input type="number" step="0.001" id="yInterest" />
+			</div>
+		</div>
+		<div class="detailsInput chng_head">
+			<div class="ques">
+				Compound interval
+			</div>
+			<div class="input">
+				<select name="compoundInt" id="compoundInt" onChange="ChangeCI();">
+					<option selected='selected'>Monthly</option>
+					<option>Yearly</option>
+				</select>
+			</div>
+		</div>
+		<div class="detailsInput chng_head">
+			<div class="ques">
+				Number of <span id="int_ques">Months</span>
+			</div>
+			<div class="input">
+				<input type="number" id="intervalPay" />
+			</div>
+		</div>
+	</div>
+	
+	<button type="submit" style="font-size:1em">Calculate</button>
+	</form>
+	<div id="ansCont">
+		Answer
+	</div>
+</div>
+<script>
+var inter = document.getElementById('compoundInt');
+var selType = document.getElementById('type'),
+	unknw = document.getElementById('unkwn'),
+	currType=0,currunkwn=0;
+var nom = 'Number of <span id="int_ques">Months</span>'
+var arrQues = [
+	[
+		["Periodic Pay","Yearly interest rate","Compound interval",nom],
+		["Principal amount","Monthly interest rate","Interval",nom],
+		["Principal amount","Yearly interest rate","Compound interval",nom],
+		["Principal amount","Yearly interest rate","Simple interval",nom],
+	],//amount unknown
+	[
+		["Final Amount","Yearly interest rate","Compound interval",nom],
+		["EMI","Monthly interest rate","Interval",nom],
+		["Final amount","Yearly interest rate","Compound interval",nom],
+		["Final amount","Yearly interest rate","Simple interval",nom],
+	],//principal unknown
+	[
+		["Periodic Pay","Yearly interest rate","Compound interval","Final Amount"],
+		["Principal amount","Monthly interest rate","Interval","EMI"],
+		["Principal amount","Yearly interest rate","Compound interval","Final Amount"],
+		["Principal amount","Yearly interest rate","Simple interval","Amount"],
+	],//time period unknown
+	[
+		["Periodic Pay","Final Amount","Compound interval",nom],
+		["Principal amount","EMI","Interval",nom],
+		["Principal amount","Final Amount","Compound interval",nom],
+		["Principal amount","Fianl Amount","Simple interval",nom],
+	],// rate unknown
+];
+var arrUnkwn = [
+	["Amount","Periodic Pay","Period","Rate of Interest"],
+	["EMI","Principal","Period","Rate of Interest"],
+	["Amount","Principal","Period","Rate of Interest"],
+	["Amount","Principal","Period","Rate of Interest"],
+];
+function calculateAmount(){
+	var regP,roi,num,amount;
+	regP = parseFloat(document.getElementById('regAmount').value);
+	roi = parseFloat(document.getElementById('yInterest').value);
+	num = parseFloat(document.getElementById('intervalPay').value);
+	if(isNaN(regP)||isNaN(roi)||isNaN(num))
+	{
+		document.getElementById('ansCont').innerHTML = "Fields missing";
+		return false;
+	}
+	if(inter.options[inter.selectedIndex].index == 0)
+	{
+		roi=roi/12;
+	}
+	if(currType==0)
+		amount = regP * [1 + (100/roi)]* (Math.pow([1+(roi/100)],num)-1);
+	else if(currType==1)
+	{
+		roi=roi*12;
+		amount = (regP*roi/100) * (Math.pow(1+(roi/100),num)/[Math.pow(1+(roi/100),num)-1]);
+	}
+	else if(currType==2)
+		amount = regP * Math.pow([1+(roi/100)],num);
+	else
+		amount = regP + (regP*num*roi/100);
+	amount = amount.toFixed(2);
+	document.getElementById('ansCont').innerHTML = amount;
+	return false;
+};
+function calculatePrincipal(){
+	var regP,roi,num,amount;
+	amount = parseFloat(document.getElementById('regAmount').value);
+	roi = parseFloat(document.getElementById('yInterest').value);
+	num = parseFloat(document.getElementById('intervalPay').value);
+	if(isNaN(amount)||isNaN(roi)||isNaN(num))
+	{
+		document.getElementById('ansCont').innerHTML = "Fields missing";
+		return false;
+	}
+	if(inter.options[inter.selectedIndex].index == 0)
+	{
+		roi=roi/12;
+	}
+	if(currType==0)
+		regP = amount /([1 + (100/roi)]* (Math.pow([1+(roi/100)],num)-1));
+	else if(currType==1)
+	{
+		roi=roi*12;
+		regP = (roi/100/amount) * (Math.pow(1+(roi/100),num)/[Math.pow(1+(roi/100),num)-1]);
+		regP = 1/regP;
+	}
+	else if(currType==2)
+		regP = amount / Math.pow([1+(roi/100)],num);
+	else
+		regP = amount/[1 + (num*roi/100)];
+	regP = regP.toFixed(2);
+	document.getElementById('ansCont').innerHTML = regP;
+	return false;
+};
+function calculatePeriod(){
+	var regP,roi,num,amount;
+	regP = parseFloat(document.getElementById('regAmount').value);
+	roi = parseFloat(document.getElementById('yInterest').value);
+	amount = parseFloat(document.getElementById('intervalPay').value);
+	if(isNaN(regP)||isNaN(roi)||isNaN(amount))
+	{
+		document.getElementById('ansCont').innerHTML = "Fields missing";
+		return false;
+	}
+	if(inter.options[inter.selectedIndex].index == 0)
+	{
+		roi=roi/12;
+	}
+	if(currType==0){
+		num = Math.log((amount/regP*roi/(roi+100))+1)/Math.log([100+roi]/100);
+	}
+	else if(currType==1)
+	{
+		roi=roi*12;
+		var t = amount*100/regP/roi;
+		num = Math.log(t/(t-1))/Math.log((100+roi)/100);
+	}
+	else if(currType==2)
+		num = Math.log(amount/regP)/Math.log((100+roi)/100);
+	else
+		num = [amount-regP]/regP/roi*100;
+	num = num.toFixed(0);
+	document.getElementById('ansCont').innerHTML = num + " " +periodType;
+	return false;
+};
+function calculateRate(){
+	var regP,roi,num,amount;
+	regP = parseFloat(document.getElementById('regAmount').value);
+	amount = parseFloat(document.getElementById('yInterest').value);
+	num = parseFloat(document.getElementById('intervalPay').value);
+	if(isNaN(regP)||isNaN(num)||isNaN(amount))
+	{
+		document.getElementById('ansCont').innerHTML = "Fields missing";
+		return false;
+	}
+	if(currType==0){
+		roi = parseFloat(approxRate1(amount,regP,num));
+	}
+	else if(currType==1)
+	{
+		roi = parseFloat(approxRate2(amount,regP,num));
+	}
+	else if(currType==2)
+		roi = [Math.exp(Math.log(amount/regP)/num)-1]*100;
+	else
+		roi = [amount-regP]/num/regP*100;
+	roi = roi.toFixed(3);
+	if(inter.options[inter.selectedIndex].index == 0)
+		document.getElementById('ansCont').innerHTML = roi + "% per Month";
+	else
+		document.getElementById('ansCont').innerHTML = roi + "% per Year";
+	return false;
+};
+function approxRate1(A,P,N){
+	var stepR=1,R=parseFloat(1.000001),aA,temp,increase=true,i=1000;
+	while(i--)
+	{
+		aA = P * [1 + (100/R)]* (Math.pow([1+(R/100)],N)-1);
+		aA = aA.toFixed(2);
+		if(aA<A)
+		{
+			if(increase==false){
+				stepR /=10;
+				if(stepR == 0.00001)
+					break;
+			}
+			R += stepR;
+			increase = true;
+		}
+		else if(aA>A)
+		{
+			if(increase==true){
+				stepR /=10;
+				if(stepR == 0.0001)
+					break;
+			}
+			R -=stepR;
+			increase = false;
+		}
+		else
+			break;
+	}
+	return R.toFixed(3);
+}
+function approxRate2(A,P,N){
+	var stepR=1,R=parseFloat(1.000001),aA,temp,increase=true,i=1000;
+	while(i--)
+	{
+		temp = Math.pow(1+(R/100),N);
+		aA = P*R/100*temp/(temp-1);
+		aA = aA.toFixed(2);
+		if(aA<A)
+		{
+			if(increase==false){
+				stepR /=10;
+				if(stepR == 0.00001)
+					break;
+			}
+			R += stepR;
+			increase = true;
+		}
+		else if(aA>A)
+		{
+			if(increase==true){
+				stepR /=10;
+				if(stepR == 0.0001)
+					break;
+			}
+			R -=stepR;
+			increase = false;
+		}
+		else
+			break;
+	}
+	return R.toFixed(3);
+}
+function Changetype(){
+	var ele = document.getElementsByClassName('chng_head');
+	currType = selType.options[selType.selectedIndex].index;
+	currunkwn = unkwn.options[unkwn.selectedIndex].index;
+	for (var i = 0; i < ele.length; ++i) {
+	    var item = ele[i];  
+	    item.getElementsByClassName('ques')[0].innerHTML = arrQues[currunkwn][currType][i];
+	};
+	ChangeCI();
+	return;
+};
+function ChangeUnknown(){
+	var optns = unknw.getElementsByTagName('option');
+	for(var i=0;i<optns.length;i++)
+	{
+		optns[i].innerHTML = arrUnkwn[currType][i];
+	}
+	return;
+};
+function ChangeSubmit(){
+	document.getElementById('mainForm').onsubmit = function(){
+		switch(currunkwn)
+		{
+			case 0:
+			{
+				calculateAmount();
+				break;
+			}
+			case 1:
+			{
+				calculatePrincipal();
+				break;
+			}
+			case 2:
+			{
+				calculatePeriod();
+				break;
+			}
+			case 3:
+			{
+				calculateRate();
+				break;
+			}
+		};
+		return false;
+	}
+}
+var periodType = "Months";
+function ChangeCI(){
+	if(document.getElementById('compoundInt').selectedIndex)
+		periodType = "Years";
+	else
+		periodType = "Months";
+	if(currunkwn == 2)
+		return;
+	document.getElementById('int_ques').innerHTML = periodType;
+	return
+};
+</script>
+</body>
+</html>
