@@ -132,16 +132,18 @@ function binarySearch(startValue, startStep, evaluator) {
 
 	// Find the correct startStep location where the answer exists.
 	// Note: This is an open ended binary search where min and max is not defined.
-	// Hence, there is a need to find min and max where abs(max-min) < startStep.
+	// Hence, there is a need to find min and max where abs(max-min) < step.
 	var result = evaluator(value);
 	let nextStepResult = evaluator(value + step);
 	var evaluatorDirection = (result > nextStepResult)? -1 : 1;
 	var firstResultSign = result < 0 ? -1 : 1;
 	while (iterationsLimit-- > 0 && firstResultSign * result > 0) {
 		value -= (firstResultSign * evaluatorDirection * step);
+		step *= 2
 		result = evaluator(value);
 	}
 
+	iterationsLimit = 20
 	while(iterationsLimit-- > 0) {
 		result = evaluator(value);
 		if (Math.abs(result) < epsilon) {
