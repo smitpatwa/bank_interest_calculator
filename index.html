@@ -125,8 +125,8 @@ var calculator = null;
 // Param evaluator: Evaluates a function for a given value. The evaluator should
 // be strictly increasing or decreasing function.
 function binarySearch(startValue, startStep, evaluator) {
-	var iterationsLimit = 1000,
-			epsilon = 0.00001,
+	var iterationsLimit = 20,
+			epsilon = 0.0001,
 			value = startValue,
 			step = startStep;
 
