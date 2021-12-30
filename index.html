@@ -252,7 +252,9 @@ let periodicPayCalculator =	{
 	"description": "Compound monthly interest calculator",
 	"value_options_keys": ["amount", "principal", "roi", "interval", "period"],
 	"value_cache": {},
-	"ques_cache": {},
+	"ques_cache": {
+		"principal": "Periodic pay",
+	},
 	calculate: function(selectedUnknownValue) {
 		let cache = this.value_cache;
 		let p = cache.principal,
